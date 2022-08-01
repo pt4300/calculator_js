@@ -3,7 +3,9 @@ const displayHistory = document.querySelector('.display-history');
 const inputNumber = document.querySelectorAll('.number');
 const inputOperand = document.querySelectorAll('.operand');
 const clearButton = document.querySelector('#clear');
-let previous_val='', current_val='', operation='';
+const deleteButton = document.querySelector('#delete');
+const equalButton = document.querySelector('#equal');
+let previous_val='', current_val='', cached_operation='';
 
 function add(...args){
     sum = 0;
@@ -47,7 +49,7 @@ function divide(a,b,...args){
     return initial
 }
 function clear(){
-    operation='';
+    cached_operation='';
     previous_val = '';
     current_val = '';
     displayText.innerText = '';
@@ -55,12 +57,19 @@ function clear(){
 }
 
 function delete_number(){
-    return 
+    current_val = current_val.slice(0,-1);
+    updateDisplay();
 }
 function select_operation(oper){
     //do not record operand if there is no value input
+    cached_operation = oper;
     if(!current_val)return;
-    operate(oper);
+    if(previous_val){
+        operate(cached_operation);
+    }
+    console.log(cached_operation);
+    previous_val = current_val;
+    current_val = '';
 }
 
 function appendNumber(num){
@@ -68,7 +77,8 @@ function appendNumber(num){
     current_val += num;
     displayText.textContent = current_val;
 }
-function showDisplay(){
+
+function update(){
 
     inputNumber.forEach(key=>{
         key.addEventListener('click',()=>{
@@ -78,27 +88,46 @@ function showDisplay(){
     inputOperand.forEach(key=>{
         key.addEventListener('click',()=>{
             select_operation(key.innerText);
-            previous_val = current_val;
-            current_val = '';
         });
     })
     clearButton.addEventListener('click',()=>{
         clear();
     });
+    deleteButton.addEventListener('click',()=>{
+        delete_number();
+    });
+    equalButton.addEventListener('click',()=>{
+        operate(cached_operation);
+    });
 
+}
+function updateDisplay(){
+    displayText.textContent = current_val;
 }
 
 function operate(operation){
-    if(!previous_val||!current_val)return
     displayHistory.textContent += previous_val + operation + current_val;
+
     switch(operation){
         case '+':
-            console.log(current_val);
             current_val = add(parseFloat(previous_val),parseFloat(current_val)).toString();
-            displayText.textContent = current_val;
+            break;
+        case 'x':
+            current_val = multiply(parseFloat(previous_val),parseFloat(current_val)).toString();
+            break;
+        case '-':
+            current_val = subtract(parseFloat(previous_val),parseFloat(current_val)).toString();
+            break;
+        case '/':
+            current_val = divide(parseFloat(previous_val),parseFloat(current_val)).toString();
+            if(current_val===Infinity){
+                displayText.textContent = "∞";
+            }
+            break;
         default:
-            return
+            break;
     }
+    updateDisplay();
 }
 
-showDisplay();
+update();
